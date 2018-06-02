@@ -14,9 +14,21 @@ int moisureSensorValues[8][5] =
   {100, 100, 100, 100, 100},
   {100, 100, 100, 100, 100}
 };
+int temperaturSensorValues[8][5] =
+{ {20, 20, 20, 20, 20},
+  {20, 20, 20, 20, 20},
+  {20, 20, 20, 20, 20},
+  {20, 20, 20, 20, 20},
+  {20, 20, 20, 20, 20},
+  {20, 20, 20, 20, 20},
+  {20, 20, 20, 20, 20},
+  {20, 20, 20, 20, 20}
+};
+
+
 // es wir mehrmals gemessen um ausreiser auszuschließen
-String id = String("#AAAAAA--W") + "008" + "SENSORID" + 50  + "*"; //0,7 //7,10//10,13//13,21//21-*
-String id2 = String("#AAAAAA--T") + "008" + "SENSORID" + 50  + "*"; //0,7 //7,10//10,13//13,21//21-*
+String id = String("#AAAAAA--W") + "008" + "SENSORID" + 50  + "*"; //0,7 //7,10//10,13//13,21//21-* // speicher   1-9 
+String id2 = String("#AAAAAA--T") + "008" + "SENSORID" + 50  + "*"; //0,7 //7,10//10,13//13,21//21-* // speicher   10-19 
 
 void setup() {
   // put your setup code here, to run once:
@@ -50,8 +62,8 @@ void loop() {
 
 void startFunction() {
   if (recevedPacket.substring(13, 16).equals("SET")) { //setter
-    if (recevedPacket.substring(13, 21).equals("SETWATER")) {
-      setWaterValue();
+    if (recevedPacket.substring(13, 21).equals("SETVALUE")) {
+      setValue();
     }
   }
   else if (recevedPacket.substring(13, 16).equals("GET")) { //Getter
@@ -59,6 +71,8 @@ void startFunction() {
       externalReadNewValue();
     }
   }
+
+ 
 }
 
 
@@ -69,12 +83,24 @@ void writeValues(String sendPacket) {
   }
 }
 
-void setWaterValue() {
+void setValue() {
   int sensorNumber = recevedPacket.substring(10, 13).toInt();
   int newSensorValue = recevedPacket.substring(21, recevedPacket.length()).toInt();
   EEPROMWriteInt(sensorNumber, newSensorValue);
+  if (recevedPacket.substring(7, 10).equals("--W")) {
+    for(int i=0; i<5;i++){
+      moisureSensorValues[sensorNumber][i]=newSensorValue;
+      }
+  } else if (recevedPacket.substring(7, 10).equals("--T")) {
+    for(int i=0;i<5;i++){
+      temperaturSensorValues[sensorNumber][i]=newSensorValue;
+      }
+  }
+  
   externalReadNewValue();
 }
+
+
 
 void externalReadNewValue() {
   if (recevedPacket.substring(7, 10).equals("--W")) {

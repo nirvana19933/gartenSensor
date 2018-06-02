@@ -33,7 +33,7 @@ URTouch  myTouch( 6, 5, 4, 3, 2); // InitTouchscreen
 
 //SENSORVARIABLEN
 //FEUCHTIGKEIT
-LinkedList<String> humidity;
+LinkedList<String> moisure;
 LinkedList<String> temperatur;
 
 //COMMUNICATION
@@ -107,26 +107,7 @@ void loop()
     //Serial.println(state);
     if ((xTouch != -1) and (yTouch != -1))
     {
-        drawMenu(state, xTouch, yTouch);// touchAction(xTouch, yTouch);
-      
-//      if (state.equals("HOME") || state.equals("INIT")) {
-//        drawMenu("HOME", xTouch, yTouch);// touchAction(xTouch, yTouch);
-//      }
-//      else if (state.equals("CONTROL")) {
-//        drawMenu("CONTROL", xTouch, yTouch);// touchAction(xTouch, yTouch);
-//      }
-//      // else if (state.equals("WATERING")) {
-//      // drawMenu("WATERING", xTouch, yTouch);// touchAction(xTouch, yTouch);
-//      //  }
-//      else if (state.equals("WATERSENSOR")) {
-//        drawMenu("WATERSENSOR", xTouch, yTouch);// touchAction(xTouch, yTouch);
-//      }
-//      else if (state.equals("TEMPERATUR")) {
-//        drawMenu("TEMPERATUR", xTouch, yTouch);// touchAction(xTouch, yTouch);
-//      }
-//      else if (state.equals("SENSORTYPES")) {
-//        drawMenu("SENSORTYPES", xTouch, yTouch);// touchAction(xTouch, yTouch);
-//      }
+      drawMenu(state, xTouch, yTouch);// touchAction(xTouch, yTouch);
       navigationAction(xTouch, yTouch);
 
     }
@@ -326,7 +307,7 @@ void navigartion() {
       default: printf(""); break;
     }
   }
-  if (state.equals("WATERSENSOR")) {
+  if (state.equals("WATERSENSOR")|| state.equals("TEMPERATUR") ) {
     for (int i = 0; i < 2; i++)
     {
       x = 800 - (i + 1 * 100) - 5;
@@ -452,7 +433,7 @@ void drawSensorTypes(int xTouch, int yTouch) {
   isDrawed = true;
 }
 
-// Zeichne alle sensoren vom typ wasser
+// Zeichne alle sensoren vom typ wasser /Löschen?
 void drawWatering(int xTouch, int yTouch) {
   int x, x2;
   int y, y2;
@@ -487,7 +468,7 @@ void drawWaterSensor(int xTouch, int yTouch) {
   int x, x2, xside, x2side;
   int y, y2 ;
   int sensorNumber = getSensorWithID(activeSensor).substring(10, 13).toInt();
-  int humidityAsInt;
+  int moisureAsInt;
 
   for (int i = 0; i < sensorNumber; i++) {
     int spalte = i / 5; // spalten bis zu 5 sensoren pro reihe
@@ -498,34 +479,34 @@ void drawWaterSensor(int xTouch, int yTouch) {
     xside = x - 50;
     x2side = x2 + 5;
     if (isDrawed == false) {
-      humidity.add("50");
+      moisure.add("50");
       myGLCD.setColor(0, 255, 0);
       myGLCD.fillRect(x, y, x2, y2);
       myGLCD.fillRect(x2side , y, x2side + 40, y2);
       myGLCD.fillRect(xside, y,  xside + 40 , y2);
       myGLCD.setColor(0, 0, 255); //SCHRIFTFARBE
-      myGLCD.print("humidity in % " , x + 1, y );
-      myGLCD.print("new: " + humidity.get(i), x + 5 ,   y + 20);
+      myGLCD.print("Moisure in % " , x + 1, y );
+      myGLCD.print("new: " + moisure.get(i), x + 5 ,   y + 20);
       myGLCD.print("+", x2side + 15,   y + 20);
       myGLCD.print("-", xside + 15,   y + 20);
     } else {
       if (xTouch >  x2side && xTouch <  x2side + 40  && yTouch > y  && yTouch < y2 ) {
-        if (humidity.get(i).toInt() < 99) {
-          humidityAsInt = humidity.get(i).toInt();
-          humidityAsInt++;
-          humidity.set(i, String(humidityAsInt));
+        if (moisure.get(i).toInt() < 99) {
+          moisureAsInt = moisure.get(i).toInt();
+          moisureAsInt++;
+          moisure.set(i, String(moisureAsInt));
         }
       }
       if (xTouch > xside && xTouch < xside + 40 && yTouch > y  && yTouch < y2 ) {
-        if (humidity.get(i).toInt() > 0) {
-          humidityAsInt = humidity.get(i).toInt();
-          humidityAsInt--;
-          humidity.set(i, String(humidityAsInt));
+        if (moisure.get(i).toInt() > 0) {
+          moisureAsInt = moisure.get(i).toInt();
+          moisureAsInt--;
+          moisure.set(i, String(moisureAsInt));
         }
       }
       myGLCD.setColor(0, 0, 255); //SCHRIFTFARBE
       //myGLCD.print("is " + getSensorValue(activeSensor  + "000", sensorList), x + 1, y + 20 );
-      myGLCD.print("new: " + humidity.get(i), x + 5 ,   y + 20);
+      myGLCD.print("new: " + moisure.get(i), x + 5 ,   y + 20);
     }
   }
   isDrawed = true;
@@ -590,15 +571,16 @@ void navigationAction(int xTouch, int yTouch) {
     drawMenu("HOME", -1, -1);
   }
   else if (xTouch > 695 && xTouch < 795  && yTouch > 445  && yTouch < 475 ) {
-    if (state.equals("WATERSENSOR")){
+   // if (state.equals("WATERSENSOR")){
       int sensorNumber = getSensorWithID(activeSensor).substring(10, 13).toInt();
       for (int i = 0; i < sensorNumber; i++) {
-        writeValues(activeSensor  + formatNumber(i) + "SETWATER" + humidity.get(i) );
+       if (state.equals("WATERSENSOR")){ writeValues(activeSensor  + formatNumber(i) + "SETWATER" + moisure.get(i) );}
+       if (state.equals("TEMPERATUR")){ writeValues(activeSensor  + formatNumber(i) + "SETTEMPE" + temperatur.get(i) );}
         delay(10); // delay notwendig sonst macht empfänger probleme und empfängt maximal 4 strings 
         
       }
     }
-  }
+ // }
 }
 
 void drawMenu(String menu, int xTouch, int yTouch) {
