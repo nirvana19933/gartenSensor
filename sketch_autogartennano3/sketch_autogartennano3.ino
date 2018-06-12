@@ -1,9 +1,12 @@
 #include <EEPROM.h>
+#include <SimpleTimer.h>
+
 boolean detected = false; //sendet ID solange nicht erkannt
 //String id ;
 String busRead, recevedPacket;
 // EEPROM VALUES = FOR WATERSENSOR = 1-8
 int moisureSensorValueCounter = 0;
+SimpleTimer timer;
 int moisureSensorValues[8][5] =
 { {100, 100, 100, 100, 100},
   {100, 100, 100, 100, 100},
@@ -30,18 +33,23 @@ int temperaturSensorValues[8][5] =
 String id = String("#AAAAAA--W") + "008" + "SENSORID" + 50  + "*"; //0,7 //7,10//10,13//13,21//21-* // speicher   1-9 
 String id2 = String("#AAAAAA--T") + "008" + "SENSORID" + 50  + "*"; //0,7 //7,10//10,13//13,21//21-* // speicher   10-19 
 
+
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(1000000);
+  timer.setInterval(1000, saveStats); // ein mal pro stunde
 }
 
 
 void loop() {
+    timer.run();
   if (detected == false) {
     writeValues(id); 
     delay(10);
      writeValues(id2);
      delay(10);
+     //writeValues(String( EEPROM.length()));
   }
 
   busRead = Serial.readStringUntil('*');  //PrÃ¼ft ob eingabe korrekt endet
@@ -59,6 +67,27 @@ void loop() {
     }
   }
 }
+
+void saveStats() {
+
+    EEPROMWriteInt(10000, 11551);
+    Serial.println( EEPROMReadInt(10000));
+  
+  int ThempAdress=200;
+  int MoisureAdress=100;
+  int h,m,s;
+  s = millis() / 1000;
+  m = s / 60;
+  h = s / 3600;
+  s = s - m * 60;
+  m = m - h * 60;
+  if(s>=3){
+    h=0;
+    ThempAdress++;
+    MoisureAdress++;
+    }
+}
+
 
 void startFunction() {
   if (recevedPacket.substring(13, 16).equals("SET")) { //setter
