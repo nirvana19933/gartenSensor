@@ -8,9 +8,9 @@ String busRead, recevedPacket;
 int moisureSensorValueCounter = 0;
 SimpleTimer timer;
 int moisureSensorValues[8][5] =
-{ {100, 100, 100, 100, 100},
-  {100, 100, 100, 100, 100},
-  {100, 100, 100, 100, 100},
+{ {50, 50, 50, 50, 50},
+  {50, 50, 50, 50, 50},
+  {50, 50, 50, 50, 50},
   {100, 100, 100, 100, 100},
   {100, 100, 100, 100, 100},
   {100, 100, 100, 100, 100},
@@ -39,6 +39,9 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(1000000);
   timer.setInterval(1000, saveStats); // ein mal pro stunde
+
+  pinMode(2, OUTPUT);
+  EEPROMWriteInt(1, 50);
 }
 
 
@@ -53,11 +56,12 @@ void loop() {
   }
 
   busRead = Serial.readStringUntil('*');  //PrÃ¼ft ob eingabe korrekt endet
-  Serial.println(busRead);
+  //Serial.println(busRead);
   boolean pruefeSensor = checkMoisureSensor(1, analogRead(0));
+  controlWatering(1+1,pruefeSensor); // sensor nummer +1 entspricht digitalen ausgang
+  
   if (busRead != "") {
     if (busRead.indexOf('#') > 0 && busRead.indexOf('#') != -1) { // loescht fehlerhaften oder nicht vorhandenem  praefix
-      busRead.remove(0, busRead.indexOf('#') );
     }
 
     if (busRead.startsWith("#AAAAAA")) {          //PrÃ¼ft ob eingabe korrekt startet und korrekt angesprochen wird
@@ -68,10 +72,11 @@ void loop() {
   }
 }
 
+
 void saveStats() {
 
-    EEPROMWriteInt(10000, 11551);
-    Serial.println( EEPROMReadInt(10000));
+  //  EEPROMWriteInt(10000, 11551);
+   //Serial.println( EEPROMReadInt(10000));
   
   int ThempAdress=200;
   int MoisureAdress=100;
@@ -163,14 +168,26 @@ boolean checkMoisureSensor(int sensorNumber, int sensorValue) {
   moisureSensorValues[sensorNumber - 1][moisureSensorValueCounter % 5] = percentageSensorValue; // schreibe aktuellen wert
   moisureSensorValueCounter++;
   for (int i = 0; i < 5; i++) {
-    if (moisureSensorValues[sensorNumber - 1][i] > EEPROMReadInt(sensorNumber)) { // solange ein sollwert  > messwert ist gieße nicht
+    if (moisureSensorValues[sensorNumber - 1][i] >   EEPROMReadInt(1)) { // solange ein sollwert  > messwert ist gieße nicht
       needWater = false;
-      break;
+      return needWater; // =="break"
     }
   }
   return needWater;
 
 }
+
+
+void controlWatering(int sensorNumber, bool needWater) {
+ 
+    if(needWater==1){
+      digitalWrite(sensorNumber, HIGH);   // turn the LED on (HIGH is the voltage level)
+    }
+    else{
+       digitalWrite(sensorNumber, LOW);
+    }
+}
+
 
 
 
