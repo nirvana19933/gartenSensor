@@ -12,11 +12,8 @@ String busRead, recevedPacket;
 // EEPROM VALUES = FOR WATERSENSOR = 1-8
 int moisureSensorValueCounter = 0;
 SimpleTimer timer;
-int moisureSensorValues[8][5] =
-{ {50, 50, 50, 50, 50},
-  {50, 50, 50, 50, 50},
-  {50, 50, 50, 50, 50},
-  {100, 100, 100, 100, 100},
+int moisureSensorValues[5][5] =
+{ {100, 100, 100, 100, 100},
   {100, 100, 100, 100, 100},
   {100, 100, 100, 100, 100},
   {100, 100, 100, 100, 100},
@@ -35,8 +32,8 @@ int temperaturSensorValues[8][5] =
 
 
 // es wir mehrmals gemessen um ausreiser auszuschließen
-String id = String("#AAAAAA--W") + "005" + "SENSORID" + 50  + "*"; //0,7 //7,10//10,13//13,21//21-64 // speicher   1-9 
-String id2 = String("#AAAAAA--T") + "005" + "SENSORID" + 50  + "*"; //0,7 //7,10//10,13//13,21//21-64 // speicher   10-19 
+String id = String("#AAAAAA--W") + "005" + "SENSORID" + 50  + "*"; //0,7 //7,10//10,13//13,21//21-64 // speicher   1-9
+String id2 = String("#AAAAAA--T") + "005" + "SENSORID" + 50  + "*"; //0,7 //7,10//10,13//13,21//21-64 // speicher   10-19
 //WIfi
 RF24 radio(7, 8); // CE, CSN
 const byte reciverAddress[6] = "00001";
@@ -56,35 +53,35 @@ void setup() {
   //IO
   pinMode(2, OUTPUT);
   EEPROMWriteInt(1, 50);
-  
 
-  
+
+
 }
 
 
 void loop() {
-    timer.run();
+  timer.run();
   if (detected == false) { // detect gibt an ob gerat bereits registriert //
-    writeValues(id); 
+    writeValues(id);
     delay(10);
-     writeValues(id2);
-     delay(10);
-     //writeValues(String( EEPROM.length()));
+    writeValues(id2);
+    delay(10);
+    //writeValues(String( EEPROM.length()));
   }
 
- 
- 
 
-  busRead = Serial.readStringUntil('*');  //* PrÃ¼ft ob eingabe korrekt endet und liest von datenleitung 
+
+
+  busRead = Serial.readStringUntil('*');  //* PrÃ¼ft ob eingabe korrekt endet und liest von datenleitung
 
   //Wifi Listening
   delay(5);
   radio.startListening(); //Wifi Listening
-   if (radio.available() && busRead=="") { 
+  if (radio.available() && busRead == "") {
     char wifiText[32] = "";
     radio.read(&wifiText, sizeof(wifiText));
     Serial.println(wifiText);
-    busRead=wifiText;
+    busRead = wifiText;
   }
 
 
@@ -99,31 +96,31 @@ void loop() {
     }
   }
 
-    //Serial.println(busRead);
-  boolean pruefeSensor = checkMoisureSensor(1, analogRead(0));
-  controlWatering(1+1,pruefeSensor); // sensor nummer +1 entspricht digitalen ausgang
-
+  //Serial.println(busRead);
+  for (int i = 0 ; i < 5 ; i++) { //i entspricht senornummer im array 
+    boolean pruefeSensor = checkMoisureSensor(i+1, analogRead(i));
+    controlWatering(i + 1, pruefeSensor); // sensor nummer +1 entspricht digitalen ausgang
+  }
 }
 
 
 void saveStats() {
-
   //  EEPROMWriteInt(10000, 11551);
-   //Serial.println( EEPROMReadInt(10000));
-  
-  int ThempAdress=200;
-  int MoisureAdress=100;
-  int h,m,s;
+  //Serial.println( EEPROMReadInt(10000));
+
+  int ThempAdress = 200;
+  int MoisureAdress = 100;
+  int h, m, s;
   s = millis() / 1000;
   m = s / 60;
   h = s / 3600;
   s = s - m * 60;
   m = m - h * 60;
-  if(s>=3){
-    h=0;
+  if (s >= 3) {
+    h = 0;
     ThempAdress++;
     MoisureAdress++;
-    }
+  }
 }
 
 
@@ -139,18 +136,18 @@ void startFunction() {
     }
   }
 
- 
+
 }
 
 
 void writeValues(String sendPacket) {
   if (sendPacket.indexOf('#') == 0  && sendPacket.indexOf('*') == sendPacket.length() - 1) {
     Serial.println(sendPacket);
-       delay(5);
-        radio.stopListening();
-        const char wifiText[64];
-        sendPacket.toCharArray(wifiText,64);
-        radio.write(&wifiText, sizeof(wifiText));
+    delay(5);
+    radio.stopListening();
+    const char wifiText[64];
+    sendPacket.toCharArray(wifiText, 64);
+    radio.write(&wifiText, sizeof(wifiText));
   }
 }
 
@@ -159,15 +156,15 @@ void setValue() {
   int newSensorValue = recevedPacket.substring(21, recevedPacket.length()).toInt();
   EEPROMWriteInt(sensorNumber, newSensorValue);
   if (recevedPacket.substring(7, 10).equals("--W")) {
-    for(int i=0; i<5;i++){
-      moisureSensorValues[sensorNumber][i]=newSensorValue;
-      }
+    for (int i = 0; i < 5; i++) {
+      moisureSensorValues[sensorNumber][i] = newSensorValue;
+    }
   } else if (recevedPacket.substring(7, 10).equals("--T")) {
-    for(int i=0;i<5;i++){
-      temperaturSensorValues[sensorNumber][i]=newSensorValue;
-      }
+    for (int i = 0; i < 5; i++) {
+      temperaturSensorValues[sensorNumber][i] = newSensorValue;
+    }
   }
-  
+
   externalReadNewValue();
 }
 
@@ -216,13 +213,13 @@ boolean checkMoisureSensor(int sensorNumber, int sensorValue) {
 
 
 void controlWatering(int sensorNumber, bool needWater) {
- 
-    if(needWater==1){
-      digitalWrite(sensorNumber, HIGH);   // turn the LED on (HIGH is the voltage level)
-    }
-    else{
-       digitalWrite(sensorNumber, LOW);
-    }
+
+  if (needWater == 1) {
+    digitalWrite(sensorNumber, HIGH);   // turn the LED on (HIGH is the voltage level)
+  }
+  else {
+    digitalWrite(sensorNumber, LOW);
+  }
 }
 
 
