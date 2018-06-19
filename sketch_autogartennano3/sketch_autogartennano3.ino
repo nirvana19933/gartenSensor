@@ -1,5 +1,10 @@
 #include <EEPROM.h>
 #include <SimpleTimer.h>
+//wifi
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+
 
 boolean detected = false; //sendet ID solange nicht erkannt
 //String id ;
@@ -30,24 +35,36 @@ int temperaturSensorValues[8][5] =
 
 
 // es wir mehrmals gemessen um ausreiser auszuschließen
-String id = String("#AAAAAA--W") + "008" + "SENSORID" + 50  + "*"; //0,7 //7,10//10,13//13,21//21-* // speicher   1-9 
-String id2 = String("#AAAAAA--T") + "008" + "SENSORID" + 50  + "*"; //0,7 //7,10//10,13//13,21//21-* // speicher   10-19 
-
+String id = String("#AAAAAA--W") + "005" + "SENSORID" + 50  + "*"; //0,7 //7,10//10,13//13,21//21-64 // speicher   1-9 
+String id2 = String("#AAAAAA--T") + "005" + "SENSORID" + 50  + "*"; //0,7 //7,10//10,13//13,21//21-64 // speicher   10-19 
+//WIfi
+RF24 radio(7, 8); // CE, CSN
+const byte reciverAddress[6] = "00001";
+const byte transmitterAddress[6] = "00000";
 
 
 void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(1000000);
+  //General
+  Serial.begin(9600);
+  //Timer
   timer.setInterval(1000, saveStats); // ein mal pro stunde
-
+  //WIFI
+  radio.begin();
+  radio.openWritingPipe(transmitterAddress);
+  radio.openReadingPipe(0, reciverAddress);
+  radio.setPALevel(RF24_PA_MIN);
+  //IO
   pinMode(2, OUTPUT);
   EEPROMWriteInt(1, 50);
+  
+
+  
 }
 
 
 void loop() {
     timer.run();
-  if (detected == false) {
+  if (detected == false) { // detect gibt an ob gerat bereits registriert //
     writeValues(id); 
     delay(10);
      writeValues(id2);
@@ -55,11 +72,22 @@ void loop() {
      //writeValues(String( EEPROM.length()));
   }
 
-  busRead = Serial.readStringUntil('*');  //PrÃ¼ft ob eingabe korrekt endet
-  //Serial.println(busRead);
-  boolean pruefeSensor = checkMoisureSensor(1, analogRead(0));
-  controlWatering(1+1,pruefeSensor); // sensor nummer +1 entspricht digitalen ausgang
-  
+ 
+ 
+
+  busRead = Serial.readStringUntil('*');  //* PrÃ¼ft ob eingabe korrekt endet und liest von datenleitung 
+
+  //Wifi Listening
+  delay(5);
+  radio.startListening(); //Wifi Listening
+   if (radio.available() && busRead=="") { 
+    char wifiText[32] = "";
+    radio.read(&wifiText, sizeof(wifiText));
+    Serial.println(wifiText);
+    busRead=wifiText;
+  }
+
+
   if (busRead != "") {
     if (busRead.indexOf('#') > 0 && busRead.indexOf('#') != -1) { // loescht fehlerhaften oder nicht vorhandenem  praefix
     }
@@ -70,6 +98,11 @@ void loop() {
       startFunction();
     }
   }
+
+    //Serial.println(busRead);
+  boolean pruefeSensor = checkMoisureSensor(1, analogRead(0));
+  controlWatering(1+1,pruefeSensor); // sensor nummer +1 entspricht digitalen ausgang
+
 }
 
 
@@ -113,7 +146,11 @@ void startFunction() {
 void writeValues(String sendPacket) {
   if (sendPacket.indexOf('#') == 0  && sendPacket.indexOf('*') == sendPacket.length() - 1) {
     Serial.println(sendPacket);
-
+       delay(5);
+        radio.stopListening();
+        const char wifiText[64];
+        sendPacket.toCharArray(wifiText,64);
+        radio.write(&wifiText, sizeof(wifiText));
   }
 }
 
