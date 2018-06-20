@@ -17,7 +17,7 @@ char mystr[10]; //Initialized variable to store recieved data
 void setup() {
   Serial.begin(9600);
   Serial.setTimeout(5); //sonst wartet er beim read until zu lange und empfängt nichts vom sensor
-    
+
   radio.begin();
   radio.openWritingPipe(reciverAddress);
   radio.openReadingPipe(0, transmitterAddress);
@@ -28,7 +28,7 @@ void setup() {
 }
 void loop() {
 
-busRead=Serial.readStringUntil('*');
+  busRead = Serial.readStringUntil('*');
 
   if (busRead != "" && busRead.indexOf('#') != -1) {
     if (busRead.indexOf('#') > 0 ) { // loescht fehlerhaften praefix
@@ -36,15 +36,15 @@ busRead=Serial.readStringUntil('*');
     }
 
     if (busRead.startsWith("#") ) {          //PrÃ¼ft ob eingabe korrekt startet und ob # vorhanden
-      recevedPacket = busRead+"#";
+      recevedPacket = busRead + "#";
       Serial.println(recevedPacket);
-    
+
     }
   }
 
 
-    
-//read ende
+
+  //read ende
   delay(5);
   radio.startListening();
   if (radio.available()) {
@@ -52,12 +52,16 @@ busRead=Serial.readStringUntil('*');
     radio.read(&text, sizeof(text));
     Serial.println(text);
   }
+
+  if (recevedPacket != "") {
+    radio.stopListening();
     delay(5);
-  radio.stopListening();
-//  char serialText[]=
-  char mystr[recevedPacket.length()+1];
-  recevedPacket.toCharArray(mystr, recevedPacket.length()+1); //+1 wegen null initializer
-  //mystr.toCharArray(busRead,busRead.length());
-  radio.write(&mystr, sizeof(mystr));
+    //  char serialText[]=
+    char mystr[recevedPacket.length() + 1];
+    recevedPacket.toCharArray(mystr, recevedPacket.length() + 1); //+1 wegen null initializer
+    //mystr.toCharArray(busRead,busRead.length());
+    radio.write(&mystr, sizeof(mystr));
+    recevedPacket = "";
+  }
 }
 

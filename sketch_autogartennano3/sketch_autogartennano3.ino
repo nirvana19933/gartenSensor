@@ -19,11 +19,8 @@ int moisureSensorValues[5][5] =
   {100, 100, 100, 100, 100},
   {100, 100, 100, 100, 100}
 };
-int temperaturSensorValues[8][5] =
+int temperaturSensorValues[5][5] =
 { {20, 20, 20, 20, 20},
-  {20, 20, 20, 20, 20},
-  {20, 20, 20, 20, 20},
-  {20, 20, 20, 20, 20},
   {20, 20, 20, 20, 20},
   {20, 20, 20, 20, 20},
   {20, 20, 20, 20, 20},
@@ -53,9 +50,6 @@ void setup() {
   //IO
   pinMode(2, OUTPUT);
   EEPROMWriteInt(1, 50);
-
-
-
 }
 
 
@@ -70,15 +64,13 @@ void loop() {
   }
 
 
-
-
   busRead = Serial.readStringUntil('*');  //* PrÃ¼ft ob eingabe korrekt endet und liest von datenleitung
 
   //Wifi Listening
   delay(5);
   radio.startListening(); //Wifi Listening
   if (radio.available() && busRead == "") {
-    char wifiText[32] = "";
+    char wifiText[] = "";
     radio.read(&wifiText, sizeof(wifiText));
     Serial.println(wifiText);
     busRead = wifiText;
@@ -93,6 +85,9 @@ void loop() {
       detected = true;
       recevedPacket = busRead;
       startFunction();
+    }
+     if (busRead.startsWith("#000000")) {          //empfange broadcast
+      detected = true;
     }
   }
 
@@ -143,11 +138,11 @@ void startFunction() {
 void writeValues(String sendPacket) {
   if (sendPacket.indexOf('#') == 0  && sendPacket.indexOf('*') == sendPacket.length() - 1) {
     Serial.println(sendPacket);
-    delay(5);
+   /* delay(5);
     radio.stopListening();
     const char wifiText[64];
     sendPacket.toCharArray(wifiText, 64);
-    radio.write(&wifiText, sizeof(wifiText));
+    radio.write(&wifiText, sizeof(wifiText));*/
   }
 }
 
