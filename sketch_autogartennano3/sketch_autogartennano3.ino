@@ -31,6 +31,7 @@ String id = String("#AAAAAA--W") + "008" + "SENSORID" + 50  + "*"; //0,7 //7,10/
 String id2 = String("#AAAAAA--T") + "008" + "SENSORID" + 50  + "*"; //0,7 //7,10//10,13//13,21//21-* // speicher   10-19 
 
 void setup() {
+    pinMode(02, OUTPUT);
   // put your setup code here, to run once:
   Serial.begin(1000000);
 }
@@ -46,7 +47,7 @@ void loop() {
 
   busRead = Serial.readStringUntil('*');  //PrÃ¼ft ob eingabe korrekt endet
   Serial.println(busRead);
-  boolean pruefeSensor = checkMoisureSensor(1, analogRead(0));
+  CheckAndDoActivity();
   if (busRead != "") {
     if (busRead.indexOf('#') > 0 && busRead.indexOf('#') != -1) { // loescht fehlerhaften oder nicht vorhandenem  praefix
       busRead.remove(0, busRead.indexOf('#') );
@@ -59,6 +60,19 @@ void loop() {
     }
   }
 }
+
+void CheckAndDoActivity(){
+   boolean pruefeSensor = checkMoisureSensor(1, analogRead(0));
+    if(pruefeSensor==true){
+         digitalWrite(02, HIGH);
+         Serial.write("HIGH");
+      }
+    else{
+         digitalWrite(02, LOW); 
+         Serial.write("LOW");
+         }
+   
+  }
 
 void startFunction() {
   if (recevedPacket.substring(13, 16).equals("SET")) { //setter
@@ -134,7 +148,9 @@ boolean checkMoisureSensor(int sensorNumber, int sensorValue) {
   moisureSensorValues[sensorNumber - 1][moisureSensorValueCounter % 5] = percentageSensorValue; // schreibe aktuellen wert
   moisureSensorValueCounter++;
   for (int i = 0; i < 5; i++) {
+ Serial.write("TEST2"+moisureSensorValues[sensorNumber - 1][1]);
     if (moisureSensorValues[sensorNumber - 1][i] > EEPROMReadInt(sensorNumber)) { // solange ein sollwert  > messwert ist gieße nicht
+          
       needWater = false;
       break;
     }
