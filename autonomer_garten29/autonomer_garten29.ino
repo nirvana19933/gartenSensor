@@ -3,20 +3,6 @@
 #include <URTouch.h>
 #include <LinkedList.h>
 
-
-// UTFT_Demo_800x480
-// Copyright (C)2015 Rinky-Dink Electronics, Henning Karlsen. All right reserved
-// web: http://www.RinkyDinkElectronics.com/
-//
-// This program is a demo of how to use most of the functions
-// of the library with a supported display modules.
-//
-// This demo was made for modules with a screen resolution
-// of 800x480 pixels.
-//
-// This program requires the UTFT library.
-//
-
 //
 boolean stateReady = false;
 String state = "INIT";
@@ -60,8 +46,9 @@ void setup()
   controlButtonList.add("Temperatur");
   //randomSeed(analogRead(0));
 
-  Serial1.begin(1000000);
-  Serial.begin(1000000);
+  Serial1.begin(9600);
+  Serial1.setTimeout(50); //sonst wartet er beim read until zu lange und empfängt nichts vom sensor
+  Serial.begin(9600);
   // Setup the LCD
   myGLCD.InitLCD(); //landscape
   myGLCD.setFont(BigFont);
@@ -91,7 +78,6 @@ void loop()
         readValues(recevedPacket);
       }
     }
-
   }
 
   //int buf[798];
