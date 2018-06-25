@@ -11,16 +11,16 @@ String busRead = ""; //Initialized variable to store recieved data
 String recevedPacket = "";
 
 
-char mystr[10]; //Initialized variable to store recieved data
+//char mystr[]; //Initialized variable to store recieved data
 
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(1000000);
   Serial.setTimeout(5); //sonst wartet er beim read until zu lange und empfängt nichts vom sensor
 
   radio.begin();
-  radio.openWritingPipe(reciverAddress);
-  radio.openReadingPipe(0, transmitterAddress);
+  radio.openWritingPipe(transmitterAddress);
+  radio.openReadingPipe(0, reciverAddress);
   radio.setPALevel(RF24_PA_MIN);
 
 
@@ -57,7 +57,7 @@ void loop() {
     radio.stopListening();
     delay(5);
     //  char serialText[]=
-    char mystr[recevedPacket.length() + 1];
+    char mystr[recevedPacket.length()]; // NICHT +1 SONST stimmt länge nicht mehr 
     recevedPacket.toCharArray(mystr, recevedPacket.length() + 1); //+1 wegen null initializer
     //mystr.toCharArray(busRead,busRead.length());
     radio.write(&mystr, sizeof(mystr));

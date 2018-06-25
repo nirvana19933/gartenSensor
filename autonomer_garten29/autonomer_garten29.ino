@@ -46,9 +46,9 @@ void setup()
   controlButtonList.add("Temperatur");
   //randomSeed(analogRead(0));
 
-  Serial1.begin(9600);
+  Serial1.begin(1000000);
   Serial1.setTimeout(50); //sonst wartet er beim read until zu lange und empfängt nichts vom sensor
-  Serial.begin(9600);
+  Serial.begin(1000000);
   // Setup the LCD
   myGLCD.InitLCD(); //landscape
   myGLCD.setFont(BigFont);
@@ -560,8 +560,8 @@ void navigationAction(int xTouch, int yTouch) {
    // if (state.equals("WATERSENSOR")){
       int sensorNumber = getSensorWithID(activeSensor).substring(10, 13).toInt();
       for (int i = 0; i < sensorNumber; i++) {
-       if (state.equals("WATERSENSOR")){ writeValues(activeSensor  + formatNumber(i) + "SETWATER" + moisure.get(i) );}
-       if (state.equals("TEMPERATUR")){ writeValues(activeSensor  + formatNumber(i) + "SETTEMPE" + temperatur.get(i) );}
+       if (state.equals("WATERSENSOR")){ writeValues(activeSensor  +"--W"+ formatNumber(i) + "SETWATER" + moisure.get(i) );}
+       if (state.equals("TEMPERATUR")){ writeValues(activeSensor  +"--T"+ formatNumber(i) + "SETTEMPE" + temperatur.get(i) );}
         delay(10); // delay notwendig sonst macht empfänger probleme und empfängt maximal 4 strings 
         
       }

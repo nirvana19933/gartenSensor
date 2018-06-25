@@ -33,13 +33,13 @@ String id = String("#AAAAAA--W") + "005" + "SENSORID" + 50  + "*"; //0,7 //7,10/
 String id2 = String("#AAAAAA--T") + "005" + "SENSORID" + 50  + "*"; //0,7 //7,10//10,13//13,21//21-64 // speicher   10-19
 //WIfi
 RF24 radio(7, 8); // CE, CSN
-const byte reciverAddress[6] = "00001";
-const byte transmitterAddress[6] = "00000";
+const byte reciverAddress[6] = "00000";
+const byte transmitterAddress[6] = "00001";
 
 
 void setup() {
   //General
-  Serial.begin(9600);
+  Serial.begin(1000000);
   //Timer
   timer.setInterval(1000, saveStats); // ein mal pro stunde
   //WIFI
@@ -63,20 +63,18 @@ void loop() {
     //writeValues(String( EEPROM.length()));
   }
 
-
-  busRead = Serial.readStringUntil('*');  //* PrÃ¼ft ob eingabe korrekt endet und liest von datenleitung
-
   //Wifi Listening
   delay(5);
   radio.startListening(); //Wifi Listening
-  if (radio.available() && busRead == "") {
-    char wifiText[] = "";
+ if (radio.available() && busRead == "") {
+    char wifiText[64] = "";
     radio.read(&wifiText, sizeof(wifiText));
     Serial.println(wifiText);
     busRead = wifiText;
   }
 
 
+  //busRead = Serial.readStringUntil('*');  //* PrÃ¼ft ob eingabe korrekt endet und liest von datenleitung
   if (busRead != "") {
     if (busRead.indexOf('#') > 0 && busRead.indexOf('#') != -1) { // loescht fehlerhaften oder nicht vorhandenem  praefix
     }
@@ -84,10 +82,11 @@ void loop() {
     if (busRead.startsWith("#AAAAAA")) {          //PrÃ¼ft ob eingabe korrekt startet und korrekt angesprochen wird
       detected = true;
       recevedPacket = busRead;
+      busRead="";
       startFunction();
     }
      if (busRead.startsWith("#000000")) {          //empfange broadcast
-      detected = true;
+      detected = false;
     }
   }
 
@@ -96,6 +95,7 @@ void loop() {
     boolean pruefeSensor = checkMoisureSensor(i+1, analogRead(i));
     controlWatering(i + 1, pruefeSensor); // sensor nummer +1 entspricht digitalen ausgang
   }
+   
 }
 
 
@@ -113,17 +113,15 @@ void saveStats() {
   m = m - h * 60;
   if (s >= 3) {
     h = 0;
-    ThempAdress++;
-    MoisureAdress++;
+    s=0;
+    digitalWrite(10, LOW);
   }
 }
 
 
 void startFunction() {
   if (recevedPacket.substring(13, 16).equals("SET")) { //setter
-    if (recevedPacket.substring(13, 21).equals("SETVALUE")) {
       setValue();
-    }
   }
   else if (recevedPacket.substring(13, 16).equals("GET")) { //Getter
     if (recevedPacket.substring(13, 21).equals("GETWATER")) {
@@ -138,15 +136,17 @@ void startFunction() {
 void writeValues(String sendPacket) {
   if (sendPacket.indexOf('#') == 0  && sendPacket.indexOf('*') == sendPacket.length() - 1) {
     Serial.println(sendPacket);
-   /* delay(5);
+    delay(5);
     radio.stopListening();
     const char wifiText[64];
     sendPacket.toCharArray(wifiText, 64);
-    radio.write(&wifiText, sizeof(wifiText));*/
+    radio.write(&wifiText, sizeof(wifiText));
   }
 }
 
 void setValue() {
+  Serial.println("Test");
+  digitalWrite(10, HIGH);
   int sensorNumber = recevedPacket.substring(10, 13).toInt();
   int newSensorValue = recevedPacket.substring(21, recevedPacket.length()).toInt();
   EEPROMWriteInt(sensorNumber, newSensorValue);
@@ -159,7 +159,8 @@ void setValue() {
       temperaturSensorValues[sensorNumber][i] = newSensorValue;
     }
   }
-
+   
+  // 
   externalReadNewValue();
 }
 
