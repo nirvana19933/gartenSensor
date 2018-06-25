@@ -148,7 +148,7 @@ void writeValues(String sendPacket) {
 }
 
 void setValue() {
-  Serial.println("Test");
+  Serial.println("SAVED VALUE");
   digitalWrite(10, HIGH);
   int sensorNumber = recevedPacket.substring(10, 13).toInt();
   int newSensorValue = recevedPacket.substring(21, recevedPacket.length()).toInt();
