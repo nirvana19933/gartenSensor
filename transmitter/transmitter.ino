@@ -15,8 +15,8 @@ String recevedPacket = "";
 
 
 void setup() {
-  Serial.begin(1000000);
-  Serial.setTimeout(5); //sonst wartet er beim read until zu lange und empfängt nichts vom sensor
+  Serial.begin(9600);
+  Serial.setTimeout(5); //sonst wartet er beim read until zu lange und empfÃ¤ngt nichts vom sensor
 
   radio.begin();
   radio.openWritingPipe(transmitterAddress);
@@ -35,7 +35,7 @@ void loop() {
       busRead.remove(0, busRead.indexOf('#') );
     }
 
-    if (busRead.startsWith("#") ) {          //PrÃ¼ft ob eingabe korrekt startet und ob # vorhanden
+    if (busRead.startsWith("#") ) {          //PrÃƒÂ¼ft ob eingabe korrekt startet und ob # vorhanden
       recevedPacket = busRead + "#";
       Serial.println(recevedPacket);
 
@@ -57,11 +57,12 @@ void loop() {
     radio.stopListening();
     delay(5);
     //  char serialText[]=
-    char mystr[recevedPacket.length()]; // NICHT +1 SONST stimmt länge nicht mehr 
+    char mystr[recevedPacket.length()]; // NICHT +1 SONST stimmt lÃ¤nge nicht mehr 
     recevedPacket.toCharArray(mystr, recevedPacket.length() + 1); //+1 wegen null initializer
     //mystr.toCharArray(busRead,busRead.length());
-    radio.write(&mystr, sizeof(mystr));
+    radio.write(&mystr, 64);
     recevedPacket = "";
   }
 }
+
 

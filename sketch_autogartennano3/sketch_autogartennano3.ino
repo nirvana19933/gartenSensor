@@ -39,7 +39,7 @@ const byte transmitterAddress[6] = "00001";
 
 void setup() {
   //General
-  Serial.begin(1000000);
+  Serial.begin(9600);
   //Timer
   timer.setInterval(1000, saveStats); // ein mal pro stunde
   //WIFI
@@ -49,6 +49,9 @@ void setup() {
   radio.setPALevel(RF24_PA_MIN);
   //IO
   pinMode(2, OUTPUT);
+  pinMode(3, OUTPUT);
+ 
+  
   EEPROMWriteInt(1, 50);
 }
 
@@ -91,9 +94,9 @@ void loop() {
   }
 
   //Serial.println(busRead);
-  for (int i = 0 ; i < 5 ; i++) { //i entspricht senornummer im array 
+  for (int i = 0 ; i < 3 ; i++) { //i entspricht senornummer im array 
     boolean pruefeSensor = checkMoisureSensor(i+1, analogRead(i));
-    controlWatering(i + 1, pruefeSensor); // sensor nummer +1 entspricht digitalen ausgang
+    controlWatering(i+2, pruefeSensor); // sensor nummer +1 entspricht digitalen ausgang
   }
    
 }

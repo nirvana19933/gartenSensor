@@ -46,9 +46,9 @@ void setup()
   controlButtonList.add("Temperatur");
   //randomSeed(analogRead(0));
 
-  Serial1.begin(1000000);
+  Serial1.begin(9600);
   Serial1.setTimeout(50); //sonst wartet er beim read until zu lange und empfängt nichts vom sensor
-  Serial.begin(1000000);
+  Serial.begin(9600);
   // Setup the LCD
   myGLCD.InitLCD(); //landscape
   myGLCD.setFont(BigFont);
